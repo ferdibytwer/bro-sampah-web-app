@@ -1,4 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import api from "./Api"
+
 import {
   Home,
   ClipboardCheck,
@@ -18,8 +20,12 @@ import {
   MessageCircle,
   Upload,
   Trophy,
+  Receipt,
 } from "lucide-react";
 import "./App.css";
+import { useNavigate } from "react-router-dom";
+import { OrderCardAktivitas, OrderCardCollector, OrderCardDriver } from "./orderCard";
+
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
 
@@ -243,7 +249,43 @@ const DashboardPage = () => (
   </div>
 );
 
-const AktivitasPage = () => (
+const AktivitasPage = () => {
+  const [data, setData] = useState([]);
+  const fetchData = async () => {
+    try {
+      const res = await api.get(`/orders/me`);
+      const dt= res.data.data
+      if (localStorage.getItem("role")  === "collector") {
+        const filtered = dt.filter(item =>
+          ["delivered", "inspected", "deposited"].includes(item.status)
+        );
+        setData(filtered);
+      } else if (localStorage.getItem("role") === " driver") {
+        const normalized = dt
+          .filter(item =>
+            ["delivered", "inspected", "deposited"].includes(
+              item.status?.toLowerCase()
+            )
+          )
+          .map(item => ({
+            ...item,
+            status: "delivered"
+          }));
+
+        setData(normalized);
+      }
+      else {
+        setData(dt);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+  return (
   <div className="bg-[#fcfcfc] min-h-full animate-in fade-in duration-500 pb-32">
     <div className="p-6 pt-12 flex justify-between items-center">
       <h1 className="text-xl font-bold text-gray-800">Aktivitas</h1>
@@ -271,176 +313,375 @@ const AktivitasPage = () => (
     </div>
 
     <div className="p-6 space-y-4">
-      {/* Card 1: Dalam Proses */}
-      <div className="bg-white p-5 rounded-2xl shadow-[0_5px_15px_rgba(0,0,0,0.04)] border border-gray-50">
-        <div className="flex justify-between items-center mb-4">
-          <span className="bg-[#e6f4ea] text-[#3b6b35] text-[10px] font-bold px-3 py-1 rounded-full">
-            Dalam proses
-          </span>
-          <span className="text-[10px] text-gray-400">
-            Sabtu, 14 Maret 2026
-          </span>
-        </div>
-        <div className="flex items-center gap-4 border-b border-gray-100 pb-4 mb-4">
-          <div className="bg-black p-3 rounded-xl text-white">
-            <Upload size={24} />
-          </div>
-          <div>
-            <p className="font-bold text-sm text-gray-800">
-              PENJEMPUTAN SAMPAH
-            </p>
-            <div className="flex items-center gap-1 text-[10px] text-gray-400 mt-1">
-              <MapPin size={12} /> Gg. Mega 3, Jebres, Surakarta
-            </div>
-          </div>
-        </div>
-        <div className="flex justify-between items-center text-[10px] text-gray-400">
-          <span>Sudah disetujui driver</span>
-          <div className="flex gap-1">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Star key={i} size={12} className="text-gray-300" />
-            ))}
-          </div>
-        </div>
-      </div>
 
-      {/* Card 2: Selesai */}
-      <div className="bg-white p-5 rounded-2xl shadow-[0_5px_15px_rgba(0,0,0,0.04)] border border-gray-50">
-        <div className="flex justify-between items-center mb-4">
-          <span className="bg-[#e3f2fd] text-blue-500 text-[10px] font-bold px-3 py-1 rounded-full">
-            Selesai
-          </span>
-          <span className="text-[10px] text-gray-400">Rabu, 11 Maret 2026</span>
-        </div>
-        <div className="flex items-center gap-4 border-b border-gray-100 pb-4 mb-4">
-          <div className="bg-black p-3 rounded-xl text-white">
-            <Upload size={24} />
-          </div>
-          <div>
-            <p className="font-bold text-sm text-gray-800">
-              PENJEMPUTAN SAMPAH
-            </p>
-            <div className="flex items-center gap-1 text-[10px] text-gray-400 mt-1">
-              <MapPin size={12} /> Gg. Mega 3, Jebres, Surakarta
-            </div>
-          </div>
-        </div>
-        <div className="flex justify-between items-center text-[10px] text-gray-400">
-          <span>Sudah disetujui driver</span>
-          <div className="flex gap-1">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Star key={i} size={12} className="text-gray-300" />
-            ))}
-          </div>
-        </div>
+    {data && data.length > 0 ? (
+      data.map((dt) => (
+        <OrderCardAktivitas key={dt.id} order={dt} />
+      ))
+    ) : (
+      <div className="w-full h-full flex items-center justify-center">
+      <p>
+      Tidak Ada Sampah
+      </p>
       </div>
+    )}
+
     </div>
   </div>
 );
 
-const JemputSampahPage = ({
-  capturedImage,
-  onCapture,
-  aiResult,
-  isAnalyzing,
-}) => (
-  <div className="p-6 pt-12 pb-32 animate-in fade-in duration-500">
-    <h1 className="text-xl font-bold text-center text-gray-800 mb-1">
-      Jemput Sampah
-    </h1>
-    <p className="text-[10px] text-center text-gray-500 mb-6">
-      Pilih jenis sampah anda
-    </p>
+}
 
-    <div className="flex gap-2 p-1 bg-[#4d7c44] rounded-full mb-6">
-      <button className="flex-1 bg-white text-[#4d7c44] font-bold py-2 rounded-full text-[11px] shadow-sm">
-        Sampah non-organik
-      </button>
-      <button className="flex-1 text-white font-bold py-2 text-[11px]">
-        Sampah campuran
-      </button>
-    </div>
 
-    {/* Image & Deskripsi Box */}
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 mb-6">
-      <div
-        className="w-full h-40 bg-gray-200 relative cursor-pointer group"
-        onClick={onCapture}
-      >
-        {capturedImage ? (
-          <img
-            src={capturedImage}
-            className="w-full h-full object-cover"
-            alt="Sampah"
-          />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 group-hover:text-[#4d7c44] transition-colors">
-            <Camera size={40} />
-            <p className="text-[10px] font-bold mt-2">Ketuk untuk Ambil Foto</p>
+const JemputSampahPage = () => {
+  const DEFAULT_DESCRIPTION = "Sampah yang terdiri dari plastik dan kertas";
+  const DEFAULT_WEIGHT = "10";
+  const weightUnits = ["Kg", "g", "mg", "lb", "oz"];
+  const [capturedImage, setCapturedImage] = React.useState(null);
+  const [description, setDescription] = React.useState("")
+  const [weight, setWeight] = React.useState(0)
+  const [weightUnit, setWeightUnit] = React.useState("Kg")
+  const [points, setPoints] = React.useState(0)
+  const [activeTab, setActiveTab] = React.useState("non-organik");
+  const [aiResult, setAiResult] = React.useState(null);
+  const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+  const convertToKg = (value, unit) => {
+    switch (unit) {
+      case "Kg":
+        return value;
+      case "g":
+        return value / 1000;
+      case "mg":
+        return value / 1_000_000;
+      case "lb":
+        return value * 0.453592;
+      case "oz":
+        return value * 0.0283495;
+      default:
+        return 0;
+    }
+  };
+
+  useEffect(() => {
+    const weightInKg = convertToKg(weight, weightUnit);
+    const calculatedPoints = weightInKg * 1000;
+    setPoints(Math.round(calculatedPoints));
+  }, [weight, weightUnit]);
+
+  const fileInputRef = React.useRef(null);
+  const handleCapture = () => fileInputRef.current.click();
+
+  const onFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCapturedImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+    setDescription(DEFAULT_DESCRIPTION)
+    setWeight(DEFAULT_WEIGHT)
+    setWeightUnit("Kg")
+  };
+  const navigate = useNavigate()
+
+  const handleNext = () => {
+    if (!capturedImage) {
+      alert("Lengkapi data terlebih dahulu");
+      return;
+    }
+
+    const payload = {
+      image: capturedImage,
+      description: description,
+      weightKg: convertToKg(weight, weightUnit),
+      weight: weight,
+      weightUnit: weightUnit,
+      points: points,
+      type: activeTab,
+    };
+
+    localStorage.setItem("reportPayload", JSON.stringify(payload));
+    navigate("/checkout")
+  };
+
+  const formStyle = "border-b border-gray-300 focus-within:border-black focus-within:shadow-[0_2px_0_0_rgba(0,0,0,1)] transition-all"
+
+  return (
+    <div className="p-6 pt-12 pb-32 animate-in fade-in duration-500">
+      <input
+        type="file"
+        accept="image/*"
+        ref={fileInputRef}
+        onChange={onFileChange}
+        hidden
+      />
+
+      <h1 className="text-xl font-bold text-center text-gray-800 mb-1">
+        Jemput Sampah
+      </h1>
+      <p className="text-[10px] text-center text-gray-500 mb-6">
+        Pilih jenis sampah anda
+      </p>
+
+      <div className="flex gap-2 p-1 bg-[#4d7c44] rounded-full mb-6">
+        <button
+          onClick={() => setActiveTab("non-organik")}
+          className={`flex-1 font-bold py-2 rounded-full text-[11px] shadow-sm ${
+            activeTab === "non-organik"
+              ? "bg-white text-[#4d7c44]"
+              : "text-white"
+          }`}
+        >
+          Sampah non-organik
+        </button>
+        <button
+          onClick={() => setActiveTab("campuran")}
+          className={`flex-1 font-bold py-2 text-[11px] ${
+            activeTab === "campuran"
+              ? "bg-white text-[#4d7c44] rounded-full"
+              : "text-white"
+          }`}
+        >
+          Sampah campuran
+        </button>
+      </div>
+
+      {/* Image & Deskripsi Box */}
+      <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 mb-6">
+        <div
+          className="w-full h-40 bg-gray-200 relative cursor-pointer group"
+          onClick={handleCapture}
+        >
+          {capturedImage ? (
+            <img
+              src={capturedImage}
+              className="w-full h-full object-cover"
+              alt="Sampah"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 group-hover:text-[#4d7c44] transition-colors">
+              <Camera size={40} />
+              <p className="text-[10px] font-bold mt-2">
+                Ketuk untuk Ambil Foto
+              </p>
+            </div>
+          )}
+
+          {isAnalyzing && (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white">
+              <Loader2 className="animate-spin" size={32} />
+            </div>
+          )}
+        </div>
+
+        {/* SHOW ONLY AFTER IMAGE UPLOADED */}
+        {capturedImage && (
+          <div className="p-4 text-[10px] text-gray-600">
+            <p className="mb-1">
+              <span className="text-[#3b6b35] font-bold">Deskripsi:</span>{" "}
+              {isAnalyzing
+                ? "Menganalisis..."
+                : DEFAULT_DESCRIPTION }
+            </p>
+            <p>
+              <span className="text-[#3b6b35] font-bold">
+                Estimasi berat sampah:
+              </span>{" "}
+              {isAnalyzing
+                ? "..."
+                : DEFAULT_WEIGHT + " Kg"}
+            </p>
           </div>
         )}
-        {isAnalyzing && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white">
-            <Loader2 className="animate-spin" size={32} />
+      </div>
+
+      <div className="space-y-4">
+        {capturedImage && (
+        <div>
+          <p className="font-bold"> Berat </p>
+          <div className="gap-5 flex">
+            <div className={formStyle + "w-16"}>
+              <select
+                value={weightUnit}
+                onChange={(e) =>
+                  setWeightUnit(e.target.value)
+                }
+                className="w-full py-3 outline-none bg-transparent"
+              >
+                {weightUnits.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            </div>
+          <div className={`${formStyle} w-24`}>
+              <input
+                type="number"
+                value={weight}
+                onWheel={(e) => e.target.blur()}
+                onChange={(e) => setWeight(e.target.value)}
+                placeholder="10"
+                className="w-full py-3 outline-none bg-transparent"
+                required
+              />
+            </div>
+          </div>
+        </div>
+  )}
+
+        {capturedImage && (
+        <div>
+          <p className="font-bold"> Description </p>
+
+          <div className={ formStyle }>
+            <textarea
+              value={description}
+              rows={4}
+              onChange={(e) =>
+                setDescription(e.target.value)
+              }
+              placeholder="Description"
+                    className="w-full py-3 outline-none bg-transparent resize-none"
+
+            />
+          </div>
+          
+        </div>
+
+        )}
+
+        <div>
+          
+        </div>
+        {capturedImage && activeTab === "non-organik" && (
+          <div className="bg-[#356d9c] p-3 rounded-xl flex items-center gap-3 text-white shadow-sm mt-6">
+            <div className="bg-white/20 p-2 rounded-lg">
+              <Wallet size={16} />
+            </div>
+            <p className="text-[11px] font-bold">
+              Estimasi Bro Sampah Points:{" "}
+              { points }{" "}
+              Points
+            </p>
           </div>
         )}
-      </div>
-      <div className="p-4 text-[10px] text-gray-600">
-        <p className="mb-1">
-          <span className="text-[#3b6b35] font-bold">Deskripsi:</span>{" "}
-          {isAnalyzing
-            ? "Menganalisis..."
-            : aiResult?.description ||
-              "Sampah yang terdiri dari plastik dan kertas"}
-        </p>
-        <p>
-          <span className="text-[#3b6b35] font-bold">
-            Estimasi berat sampah:
-          </span>{" "}
-          {isAnalyzing ? "..." : aiResult?.weight || "10 kg"}
-        </p>
+
+        <button
+          onClick={handleNext}
+          className="w-full bg-[#3b6b35] text-white py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-md active:scale-95 transition-transform mt-2"
+        >
+          <Receipt size={18} /> Lanjutkan
+        </button>
       </div>
     </div>
+  );
+};
 
-    {/* Form Inputs */}
-    <div className="space-y-4">
-      <div>
-        <label className="flex items-center gap-2 text-[11px] font-bold text-gray-700 mb-2">
-          <MapPin size={14} className="text-[#3b6b35]" /> Lokasi penjemputan:
-        </label>
-        <div className="bg-white p-3.5 rounded-xl border border-gray-200 text-xs text-gray-600 shadow-sm">
-          Gg. Mega 3, Jebres, Surakarta
-        </div>
+function JemputSampahCollectorPage() {
+  const [data, setData] = useState([]);
+
+  const fetchData = async () => {
+    try {
+      const res = await api.get(`/orders/delivered`);
+      setData(res.data.data);
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+  return (
+    <div className="p-6 pt-12 pb-32 animate-in fade-in duration-500 h-full">
+      <h1 className="text-xl font-bold text-center text-gray-800 mb-1">
+        Kelola Sampah
+      </h1>
+      <p className="text-[10px] text-center text-gray-500 mb-6">
+        List Sampah yang datang
+      </p>
+    {data && data.length > 0 ? (
+      data.map((dt) => (
+        <OrderCardCollector key={dt.id} order={dt} />
+      ))
+    ) : (
+      <div className="w-full h-full flex items-center justify-center">
+      <p>
+      Tidak Ada Sampah
+      </p>
       </div>
-
-      <div>
-        <label className="flex items-center gap-2 text-[11px] font-bold text-gray-700 mb-2">
-          <CreditCard size={14} className="text-[#3b6b35]" /> Pilih jenis
-          pembayaran:
-        </label>
-        <div className="bg-white p-3.5 rounded-xl border border-gray-200 text-xs text-gray-400 shadow-sm flex justify-between items-center">
-          Pilih jenis pembayaranmu
-        </div>
-      </div>
-
-      <div className="bg-[#356d9c] p-3 rounded-xl flex items-center gap-3 text-white shadow-sm mt-6">
-        <div className="bg-white/20 p-2 rounded-lg">
-          <Wallet size={16} />
-        </div>
-        <p className="text-[11px] font-bold">
-          Estimasi Bro Sampah Points:{" "}
-          {isAnalyzing ? "..." : aiResult?.points || "15.000"} Points
-        </p>
-      </div>
-
-      <button className="w-full bg-[#3b6b35] text-white py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-md active:scale-95 transition-transform mt-2">
-        <Truck size={18} /> Cari Driver
-      </button>
-    </div>
+    )}
   </div>
-);
+  )
 
-const ProfilePage = () => (
+}
+function JemputSampahDriverPage() {
+  const [data, setData] = useState([]);
+
+  const fetchData = async () => {
+    try {
+      const res = await api.get(`/orders/searching`);
+      setData(res.data.data);
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+  return (
+    <div className="p-6 pt-12 pb-32 animate-in fade-in duration-500 h-full">
+      <h1 className="text-xl font-bold text-center text-gray-800 mb-1">
+        Jemput Sampah
+      </h1>
+      <p className="text-[10px] text-center text-gray-500 mb-6">
+        Ayo Antar Sampah ke TPA terdekat
+      </p>
+    {data && data.length > 0 ? (
+      data.map((dt) => (
+        <OrderCardDriver key={dt.id} order={dt} />
+      ))
+    ) : (
+      <div className="w-full h-full flex items-center justify-center">
+      <p>
+      Tidak Ada Sampah
+      </p>
+      </div>
+    )}
+  </div>
+  )
+
+}
+
+
+
+const ProfilePage = (onRoleChange) => {
+const roles = ["driver", "user", "collector"];
+    
+  const [role, setRole] = useState(localStorage.getItem("role") ?? "user");
+  const [data, setData] = useState(null);
+  const fetchData = async () => {
+    try {
+      const res = await api.get("/");
+      setData(res.data?.data); 
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("role", role);
+    onRoleChange
+    fetchData();
+  }, [role]);
+    return (
   <div className="bg-[#fcfcfc] min-h-full pb-32 animate-in fade-in duration-500">
     <div className="bg-[#4d7c44] rounded-b-[30px] p-6 pt-12 text-white pb-16 relative">
       <div className="flex items-center gap-4">
@@ -448,7 +689,7 @@ const ProfilePage = () => (
           👸
         </div>
         <div>
-          <h2 className="text-xl font-bold">Hanna</h2>
+          <h2 className="text-xl font-bold"> {data?.username ?? "Hanna"} </h2>
           <p className="text-[10px] flex items-center gap-1 opacity-80 mt-1">
             Lihat akun saya <ChevronRight size={12} />
           </p>
@@ -475,12 +716,27 @@ const ProfilePage = () => (
         </p>
       </div>
     </div>
-
-    {/* Empty Grid Boxes */}
     <div className="p-6 mt-14 grid grid-cols-2 gap-4">
-      {[1, 2, 3, 4, 5, 6].map((i) => (
-        <div key={i} className="aspect-4/3 bg-gray-200 rounded-xl" />
+    </div>
+
+    <div className="w-full h-full flex items-center">
+     <div className="flex gap-2">
+      {roles.map((r) => (
+        <button
+          key={r}
+          onClick={() => setRole(r)}
+          className={`px-4 py-2 rounded-lg border transition
+            ${
+              role === r
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+            }`}
+        >
+          {r}
+        </button>
       ))}
+    </div>
+        
     </div>
 
     {/* Floating Chat Button */}
@@ -492,8 +748,10 @@ const ProfilePage = () => (
         <MessageCircle size={20} className="fill-white" />
       </button>
     </div>
+
   </div>
 );
+}
 
 // --- AI MODAL SCANNER ---
 const AiScannerModal = ({
@@ -505,6 +763,7 @@ const AiScannerModal = ({
   aiResult,
 }) => {
   if (!isOpen) return null;
+
   return (
     <div className="absolute inset-0 z-60 bg-black/60 backdrop-blur-sm p-4 flex items-center justify-center animate-in fade-in duration-300">
       <div className="bg-white w-full max-w-350px rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
@@ -577,7 +836,57 @@ const App = () => {
   const [capturedImage, setCapturedImage] = useState(null);
   const [aiResult, setAiResult] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState("")
+  const [data, setData] = useState(null)
+  
+
   const fileInputRef = useRef(null);
+  
+  const fetchData = async () => {
+    try {
+      const res = await api.get(`/orders/me`);
+      const data = res.data.data;
+      if (data === null) {
+        return
+      }
+      if (data.length === 1) {
+        const order = data[0];
+        if (order.status !== "completed" && order.status !== "deposited") {
+          setData(order);
+        }
+      } else if (data.length > 1) {
+        const hasActiveOrder = data.some(
+          (order) => order.status !== "completed" && order.status !== "deposited"
+        );
+
+        if (hasActiveOrder) {
+          const role = localStorage.getItem("role");
+
+          if (role === "user") {
+            setNotificationMessage("Lihat Sampah Mu yang Diproses");
+            return
+          } else if (role === "driver") {
+            setNotificationMessage("Lihat Sampah yang kamu Antar");
+            return
+          } else if (role === "collector") {
+            setNotificationMessage("Lihat Sampah yang bakal dateng");
+            return
+          }
+        } 
+      }
+      setData(null);
+      setNotificationMessage("")
+
+    } catch (err) {
+      console.error(err);
+      setNotificationMessage("")
+    }
+  }
+  useEffect(() => {
+    fetchData()
+  }, []);
+
+  const navigate = useNavigate()
 
   const callAi = async (image, mode) => {
     setIsAnalyzing(true);
@@ -640,6 +949,15 @@ const App = () => {
 
   return (
     <div className="bg-[#e8ece8] min-h-screen flex justify-center items-start md:py-8 font-sans">
+    {notificationMessage !== "" && data !== null && (
+  <button
+    onClick={ data !== null ? () => navigate(`orders/${data.id}`) : () => {}}
+    className="fixed bottom-25 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-[#3b6b35] text-white py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform z-50"
+  >
+    {notificationMessage}
+  </button>
+)}
+
       {/* Wrapper utama yang membuat menu tidak ikut di-scroll */}
       <div className="bg-[#fcfcfc] h-screen md:h-844px w-full max-w-390px relative overflow-hidden md:rounded-[45px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-gray-200 flex flex-col">
         <input
@@ -650,26 +968,12 @@ const App = () => {
           accept="image/*"
         />
 
-        {activeTab === "ai_scan" && (
-          <AiScannerModal
-            isOpen={true}
-            onClose={() => {
-              setActiveTab("home");
-              setCapturedImage(null);
-              setAiResult(null);
-            }}
-            capturedImage={capturedImage}
-            onCapture={handleCapture}
-            isAnalyzing={isAnalyzing}
-            aiResult={aiResult}
-          />
-        )}
 
         {/* AREA KONTEN (Bisa di-scroll) */}
         <div className="flex-1 overflow-y-auto no-scrollbar relative bg-[#fcfcfc]">
           {activeTab === "home" && <DashboardPage />}
           {activeTab === "tasks" && <AktivitasPage />}
-          {activeTab === "delivery" && (
+          {activeTab === "delivery" && localStorage.getItem("role") === "user" && (
             <JemputSampahPage
               capturedImage={capturedImage}
               onCapture={handleCapture}
@@ -677,7 +981,14 @@ const App = () => {
               isAnalyzing={isAnalyzing}
             />
           )}
-          {activeTab === "profile" && <ProfilePage />}
+          {activeTab === "delivery" && localStorage.getItem("role") === "driver" && (
+            <JemputSampahDriverPage/>
+          )}
+          {activeTab === "delivery" && localStorage.getItem("role") === "collector" && (
+            <JemputSampahCollectorPage />
+          )}
+
+          {activeTab === "profile" && <ProfilePage onRoleChange={fetchData()} />}
         </div>
 
         {/* AREA MENU (Fixed di bawah) */}
@@ -692,16 +1003,6 @@ const App = () => {
           }}
         />
 
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-          .no-scrollbar::-webkit-scrollbar { display: none; }
-          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-          body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        `,
-          }}
-        />
       </div>
     </div>
   );

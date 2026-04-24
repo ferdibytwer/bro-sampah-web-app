@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+@keyframes orbit {
+  0%   { transform: translate(-50%, -50%) rotate(0deg)   translateX(28px) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg) translateX(28px) rotate(-360deg); }
+}
