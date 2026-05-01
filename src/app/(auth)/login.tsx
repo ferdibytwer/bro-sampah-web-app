@@ -16,8 +16,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false)
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-  const [identifierFocused, setIdentifierFocused] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
+  const [focusedForm, setFocusedForm] = useState<"identifier" | "password"| null>(null)
   const [error, setError] =useState<string|null>(null)
 
   var identiferFormPlaceHolder = {
@@ -117,8 +116,9 @@ export default function LoginScreen() {
           value={identifier}
           onChangeText={setIdentifier}
           placeholder={identiferFormPlaceHolder[loginMethod]}
-          focused={identifierFocused}
-          setFocused={setIdentifierFocused}
+          focused={focusedForm === "identifier"}
+          onFocus={() => setFocusedForm("identifier")}
+          onBlur={() => setFocusedForm(null)}
           Colors={Colors}
         />
 
@@ -129,9 +129,10 @@ export default function LoginScreen() {
           value={password}
           onChangeText={setPassword}
           placeholder="Masukkan password kamu"
-          focused={passwordFocused}
-          setFocused={setPasswordFocused}
+          focused={focusedForm === "password"}
           Colors={Colors}
+          onFocus={() => setFocusedForm("password")}
+          onBlur={() => setFocusedForm(null)}
           errorMsg={error}
         />
 

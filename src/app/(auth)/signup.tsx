@@ -22,12 +22,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // focus state
-  const [fullNameFocused, setFullNameFocused] = useState(false);
-  const [usernameFocused, setUsernameFocused] = useState(false);
-  const [emailFocused, setEmailFocused] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
-  const [confirmPasswordFocused, setConfirmPasswordFocused] = useState(false);
+  const [focusedForm, setFocusedForm] = useState<"fullName" | "username" | "email" | "password" | "confirmPassword" | null >(null);
 
   // field errors
   const [usernameError, setUsernameError] = useState<string | null>(null);
@@ -142,7 +137,7 @@ export default function SignUpScreen() {
             borderRadius: 8,
           }}
         >
-          <Text style={{ color: "#B91C1C", fontWeight: "600" }}>
+          <Text style={{ color: "#B91C1C"}}>
             {apiError}
           </Text>
         </View>
@@ -156,8 +151,9 @@ export default function SignUpScreen() {
           value={fullName}
           onChangeText={setFullName}
           placeholder="Masukkan nama lengkap"
-          focused={fullNameFocused}
-          setFocused={setFullNameFocused}
+          onFocus={() => setFocusedForm("password")}
+          onBlur={() => setFocusedForm(null)}
+          focused={focusedForm === "fullName"}
           Colors={Colors}
         />
 
@@ -167,8 +163,9 @@ export default function SignUpScreen() {
           value={username}
           onChangeText={setUsername}
           placeholder="Masukkan username"
-          focused={usernameFocused}
-          setFocused={setUsernameFocused}
+          onFocus={() => setFocusedForm("username")}
+          onBlur={() => setFocusedForm(null)}
+          focused={focusedForm === "username"}
           Colors={Colors}
           errorMsg={usernameError}
         />
@@ -179,8 +176,9 @@ export default function SignUpScreen() {
           value={email}
           onChangeText={setEmail}
           placeholder="Masukkan email"
-          focused={emailFocused}
-          setFocused={setEmailFocused}
+          onFocus={() => setFocusedForm("email")}
+          onBlur={() => setFocusedForm(null)}
+          focused={focusedForm === "email"}
           Colors={Colors}
           errorMsg={emailError}
         />
@@ -191,8 +189,9 @@ export default function SignUpScreen() {
           value={password}
           onChangeText={setPassword}
           placeholder="Masukkan password"
-          focused={passwordFocused}
-          setFocused={setPasswordFocused}
+          onFocus={() => setFocusedForm("password")}
+          onBlur={() => setFocusedForm(null)}
+          focused={focusedForm === "password"}
           Colors={Colors}
           errorMsg={passwordError}
         />
@@ -203,8 +202,9 @@ export default function SignUpScreen() {
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           placeholder="Ulangi password"
-          focused={confirmPasswordFocused}
-          setFocused={setConfirmPasswordFocused}
+          onFocus={() => setFocusedForm("confirmPassword")}
+          onBlur={() => setFocusedForm(null)}
+          focused={focusedForm === "confirmPassword"}
           Colors={Colors}
           errorMsg={confirmPasswordError}
         />

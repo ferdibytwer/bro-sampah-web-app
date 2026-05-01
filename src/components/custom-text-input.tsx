@@ -15,9 +15,6 @@ const styles = StyleSheet.create({
     color: 'red',
     marginLeft: 2,
   },
-  container: {
-    borderBottomWidth: 1.5,
-  },
   input: {
     paddingVertical: 10,
     fontSize: 15,
@@ -31,7 +28,6 @@ interface BaseInputProps extends TextInputProps {
   label: string;
   required?: boolean;
   focused: boolean;
-  setFocused: (v: boolean) => void;
   errorMsg?: string | null;
   Colors: {
     text: string;
@@ -45,7 +41,6 @@ export const BaseTextInput: React.FC<BaseInputProps> = ({
   label,
   required,
   focused,
-  setFocused,
   errorMsg,
   Colors,
   style,
@@ -66,22 +61,18 @@ export const BaseTextInput: React.FC<BaseInputProps> = ({
         {required && <Text style={styles.required}>*</Text>}
       </View>
 
-      <View style={[styles.container, { borderBottomColor: borderColor }]}>
         <TextInput
           {...props}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
           placeholderTextColor={Colors.muted}
           underlineColorAndroid="transparent"
           autoCapitalize="none"
           style={[
             styles.input,
-            { color: Colors.text },
+            { color: Colors.text, borderBottomColor: borderColor, borderBottomWidth: 1.5  },
             Platform.OS === 'web' && ({ outlineStyle: 'none' } as any),
             style,
           ]}
         />
-      </View>
 
       {!!errorMsg && (
         <Text

@@ -19,8 +19,8 @@ export default function AppTabs() {
     pathname === route ? Colors.textBg : "transparent";
 
   return (
-    <Tabs>
-      <TabSlot />
+    <Tabs style={{flex:1}}>
+      <TabSlot style={{flex:1}}/>
 
       <TabList
         style={{
@@ -43,7 +43,6 @@ export default function AppTabs() {
           <Home
             size={24}
             color={iconColor("/")}
-            fill={iconFill("/")}
           />
         </TabTrigger>
 
@@ -51,7 +50,6 @@ export default function AppTabs() {
           <ReceiptText
             size={24}
             color={iconColor("/tasks")}
-            fill={iconFill("/tasks")}
           />
         </TabTrigger>
 
@@ -59,7 +57,6 @@ export default function AppTabs() {
           <Truck
             size={24}
             color={iconColor("/delivery")}
-            fill={iconFill("/delivery")}
           />
         </TabTrigger>
 
@@ -67,7 +64,6 @@ export default function AppTabs() {
           <Search
             size={24}
             color={iconColor("/search")}
-            fill={iconFill("/search")}
           />
         </TabTrigger>
 
@@ -75,7 +71,6 @@ export default function AppTabs() {
           <User
             size={24}
             color={iconColor("/profile")}
-            fill={iconFill("/profile")}
           />
         </TabTrigger>
       </TabList>

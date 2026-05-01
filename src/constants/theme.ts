@@ -13,7 +13,10 @@ export const Colors = {
     text: '#111111',
     textBg: '#FFFFFF',
     muted: '#9CA3AF',
-    error: '#B91C1C'
+    subtle: 'gray',
+    border: '#E5E7EB',
+    error: '#B91C1C',
+    blue: "#609DBB"
 };
 
 export const Fonts = Platform.select({
