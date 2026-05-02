@@ -1,22 +1,22 @@
-import React, { useEffect, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  Platform,
-  Modal,
-  Pressable,
-  ActionSheetIOS,
-  Animated,
-  ScrollView,
-  ActivityIndicator
-} from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import { Camera, Image as ImageIcon, X, RefreshCw, Motorbike, MapPin, Wallet, Banknote, ChevronRight, Map, MotorbikeIcon } from "lucide-react-native";
-import { Colors } from "@/constants/theme";
 import Button from "@/components/custom-button";
 import { BaseTextInput } from "@/components/custom-text-input";
+import { Colors } from "@/constants/theme";
+import * as ImagePicker from "expo-image-picker";
+import { Banknote, Camera, ChevronRight, Image as ImageIcon, Map, MapPin, Motorbike, RefreshCw, Wallet, X } from "lucide-react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  ActionSheetIOS,
+  ActivityIndicator,
+  Animated,
+  Image,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
 
 type CaptureStep = "top" | "front";
 
@@ -212,7 +212,63 @@ export default function Screen() {
           Pilih jenis sampah anda
         </Text>
       </View>
+      <View
+        style={{
+          flexDirection: "row",
+          gap: 8,
+          marginTop: 8,
+          padding: 4,
+          width: 300,
+          backgroundColor: "#4d7c44",
+          borderRadius: 8,
+          marginBottom: 24,
+          alignSelf: "center",
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => setTrashType("non-organik")}
+          style={{
+            flex: 1,
+            paddingVertical: 8,
+            borderRadius: 8,
+            backgroundColor: trashType === "non-organik" ? "#ffffff" : "transparent",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 11,
+              fontWeight: "700",
+              color: trashType === "non-organik" ? "#4d7c44" : "#ffffff",
+            }}
+          >
+            Sampah non-organik
+          </Text>
+        </TouchableOpacity>
 
+        <TouchableOpacity
+          onPress={() => setTrashType("campuran")}
+          style={{
+            flex: 1,
+            paddingVertical: 8,
+            borderRadius: 8,
+            backgroundColor: trashType === "campuran" ? "#ffffff" : "transparent",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 11,
+              fontWeight: "700",
+              color: trashType === "campuran" ? "#4d7c44" : "#ffffff",
+            }}
+          >
+            Sampah campuran
+          </Text>
+        </TouchableOpacity>
+      </View>
       <View
         style={{
           position: "relative",
@@ -334,62 +390,6 @@ export default function Screen() {
               <Text style={{ fontSize: 12, color: Colors.text, fontWeight: "bold", marginTop: 40 }}>
                 Pilih Jenis Sampah
               </Text>
-              <View
-                style={{
-                  flexDirection: "row",
-                  gap: 8,
-                  marginTop: 8,
-                  padding: 4,
-                  width: 300,
-                  backgroundColor: "#4d7c44",
-                  borderRadius: 8,
-                  marginBottom: 24,
-                }}
-              >
-                <TouchableOpacity
-                  onPress={() => setTrashType("non-organik")}
-                  style={{
-                    flex: 1,
-                    paddingVertical: 8,
-                    borderRadius: 8,
-                    backgroundColor: trashType === "non-organik" ? "#ffffff" : "transparent",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      fontWeight: "700",
-                      color: trashType === "non-organik" ? "#4d7c44" : "#ffffff",
-                    }}
-                  >
-                    Sampah non-organik
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => setTrashType("campuran")}
-                  style={{
-                    flex: 1,
-                    paddingVertical: 8,
-                    borderRadius: 8,
-                    backgroundColor: trashType === "campuran" ? "#ffffff" : "transparent",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      fontWeight: "700",
-                      color: trashType === "campuran" ? "#4d7c44" : "#ffffff",
-                    }}
-                  >
-                    Sampah campuran
-                  </Text>
-                </TouchableOpacity>
-              </View>
               <View style={{ gap: 20, marginTop: 10 }}>
                 <BaseTextInput
                   label="Berat (Kg) "
